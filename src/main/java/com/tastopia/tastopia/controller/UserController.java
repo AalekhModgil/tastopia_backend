@@ -1,5 +1,6 @@
 package com.tastopia.tastopia.controller;
 
+import com.tastopia.tastopia.dto.LoginRequest;
 import com.tastopia.tastopia.dto.UserRequest;
 import com.tastopia.tastopia.dto.UserResponse;
 import com.tastopia.tastopia.entity.User;
@@ -44,9 +45,9 @@ public class UserController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<?> signin(@RequestBody Map<String, String> loginRequest) {
-        String email = loginRequest.get("email");
-        String password = loginRequest.get("password");
+    public ResponseEntity<?> signin(@Valid @RequestBody LoginRequest loginRequest) {
+        String email = loginRequest.getEmail();
+        String password = loginRequest.getPassword();
 
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(email, password));
@@ -54,7 +55,7 @@ public class UserController {
 
         User user = userService.findByEmail(email);
         if (!bCryptPasswordEncoder.matches(password, user.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid credentials"));
         }
 
         String token = generateJwtToken(user.getEmail());
@@ -85,10 +86,10 @@ public class UserController {
     private String generateJwtToken(String subject) {
         SecretKey key = Keys.secretKeyFor(io.jsonwebtoken.SignatureAlgorithm.HS256); // Generates a 256-bit key
         return Jwts.builder()
-            .setSubject(subject)
-            .setIssuedAt(new Date())
-            .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
-            .signWith(key)
-            .compact();
+                .setSubject(subject)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
+                .signWith(key)
+                .compact();
     }
 }

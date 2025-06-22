@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -60,6 +61,11 @@ public class GlobalExceptionHandler {
         errors.put("details", fieldErrors);
 
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Map<String, String>> handleAuthenticationException(AuthenticationException ex) {
+        return buildErrorResponse("Invalid email or password", HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(Exception.class)
