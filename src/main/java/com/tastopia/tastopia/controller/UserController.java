@@ -50,7 +50,7 @@ public class UserController {
         String password = loginRequest.getPassword();
 
         Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(email, password));
+                new UsernamePasswordAuthenticationToken(email, password));
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         User user = userService.findByEmail(email);
@@ -78,9 +78,10 @@ public class UserController {
     }
 
     @PostMapping("/signout")
-    public ResponseEntity<?> signout() {
-        SecurityContextHolder.clearContext();
-        return ResponseEntity.ok(Map.of("message", "Successfully signed out"));
+    public ResponseEntity<Map<String, String>> signout() {
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Successfully signed out");
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     private String generateJwtToken(String subject) {

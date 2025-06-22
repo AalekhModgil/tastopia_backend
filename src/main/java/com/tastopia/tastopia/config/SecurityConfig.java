@@ -25,8 +25,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/users/signup", "/api/users/signin", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
-                .requestMatchers("/api/users/signout").hasAnyRole("USER") // Allow authenticated users with ROLE_USER
+                .requestMatchers("/api/users/signup", "/api/users/signin", "/api/users/signout", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**", "/api/restaurants","/api/restaurants/*/menu-items").permitAll()
                 .anyRequest().authenticated())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .userDetailsService(userService);
