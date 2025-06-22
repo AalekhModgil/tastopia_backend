@@ -23,7 +23,11 @@ public class UserService {
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword()); // In production, hash password
+        user.setPassword(request.getPassword()); // Hash in production
+        user.setPhone(request.getPhone());
+        user.setProfileImageUrl(request.getProfileImageUrl());
+        user.setRole(User.Role.USER);
+        user.setActive(true);
 
         User savedUser = userRepository.save(user);
 
@@ -31,6 +35,12 @@ public class UserService {
         response.setId(savedUser.getId());
         response.setName(savedUser.getName());
         response.setEmail(savedUser.getEmail());
+        response.setPhone(savedUser.getPhone());
+        response.setProfileImageUrl(savedUser.getProfileImageUrl());
+        response.setRole(savedUser.getRole());
+        response.setIsActive(savedUser.isActive());
+        response.setCreatedAt(savedUser.getCreatedAt());
+        response.setUpdatedAt(savedUser.getUpdatedAt());
         return response;
     }
 }

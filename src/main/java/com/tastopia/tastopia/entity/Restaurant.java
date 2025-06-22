@@ -1,7 +1,12 @@
 package com.tastopia.tastopia.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Entity
@@ -13,11 +18,51 @@ public class Restaurant {
     private Long id;
 
     @Column(nullable = false, unique = true)
+    @NotBlank(message = "Name is required")
     private String name;
 
     @Column(nullable = false)
+    @NotBlank(message = "Address is required")
     private String address;
 
+    @Column
+    private String city;
+
+    @Column
+    private String state;
+
     @Column(nullable = false)
+    @NotBlank(message = "Contact number is required")
+    @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Invalid contact number format (e.g., +919876543210)")
+    private String contactNumber;
+
+    @Column
+    @NotBlank(message = "Cuisine is required")
     private String cuisine;
+
+    @Column
+    private String imageUrl;
+
+    @Column(name = "is_open", nullable = false)
+    private boolean isOpen = true;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MenuItem> menuItems;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

@@ -1,9 +1,12 @@
 package com.tastopia.tastopia.dto;
 
+import com.tastopia.tastopia.entity.MenuItem;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
+
+import java.math.BigDecimal;
 
 @Data
 public class MenuItemRequest {
@@ -13,5 +16,16 @@ public class MenuItemRequest {
 
     @NotNull(message = "Price is required")
     @Positive(message = "Price must be positive")
-    private Double price;
+    private BigDecimal price;
+
+    @NotBlank(message = "Description is required")
+    private String description;
+
+    private String imageUrl;
+
+    @NotNull(message = "Category is required")
+    private MenuItem.Category category;
+
+    @NotNull(message = "Veg status is required")
+    private MenuItem.VegStatus vegStatus;
 }
