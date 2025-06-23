@@ -28,7 +28,7 @@ public class User {
 
     @Column(nullable = false)
     @NotBlank(message = "Password is required")
-    private String password; // In production, use @Column(columnDefinition = "varchar(255)") and hash
+    private String password;
 
     @Column(nullable = false, unique = true, length = 15)
     @NotBlank(message = "Phone is required")
