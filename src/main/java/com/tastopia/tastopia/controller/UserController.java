@@ -88,20 +88,32 @@ public class UserController {
         }
 
         String token = authorizationHeader.substring(7);
-        Claims claims = Jwts.parserBuilder()
-            .setSigningKey(SECRET_KEY)
-            .build()
-            .parseClaimsJws(token)
-            .getBody();
-        LocalDateTime expiryDate = claims.getExpiration().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
-        BlacklistedToken blacklistedToken = new BlacklistedToken();
-        blacklistedToken.setToken(token);
-        blacklistedToken.setExpiryDate(expiryDate);
-        blacklistedTokenRepository.save(blacklistedToken);
+        if (blacklistedTokenRepository.existsByToken(token)) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", "Token already revoked");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
 
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Successfully signed out");
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        try {
+            Claims claims = Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+            LocalDateTime expiryDate = claims.getExpiration().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+            BlacklistedToken blacklistedToken = new BlacklistedToken();
+            blacklistedToken.setToken(token);
+            blacklistedToken.setExpiryDate(expiryDate);
+            blacklistedTokenRepository.save(blacklistedToken);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Successfully signed out");
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", "Invalid token");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
     }
 
     private String generateJwtToken(String subject) {
