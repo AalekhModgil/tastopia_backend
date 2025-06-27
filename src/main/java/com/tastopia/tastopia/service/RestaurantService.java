@@ -1,9 +1,7 @@
 package com.tastopia.tastopia.service;
 
 import com.tastopia.tastopia.dto.MenuItemRequest;
-import com.tastopia.tastopia.dto.MenuItemResponse;
 import com.tastopia.tastopia.dto.RestaurantRequest;
-import com.tastopia.tastopia.dto.RestaurantResponse;
 import com.tastopia.tastopia.entity.MenuItem;
 import com.tastopia.tastopia.entity.Restaurant;
 import com.tastopia.tastopia.exception.DuplicateRestaurantNameException;
@@ -14,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +20,7 @@ public class RestaurantService {
     private final RestaurantRepository restaurantRepository;
     private final MenuItemRepository menuItemRepository;
 
-    public RestaurantResponse createRestaurant(RestaurantRequest request) {
+    public Restaurant createRestaurant(RestaurantRequest request) {
         restaurantRepository.findByName(request.getName())
             .ifPresent(restaurant -> { throw new DuplicateRestaurantNameException("Restaurant name already taken"); });
 
@@ -37,24 +34,10 @@ public class RestaurantService {
         restaurant.setImageUrl(request.getImageUrl());
         restaurant.setOpen(true);
 
-        Restaurant savedRestaurant = restaurantRepository.save(restaurant);
-
-        RestaurantResponse response = new RestaurantResponse();
-        response.setId(savedRestaurant.getId());
-        response.setName(savedRestaurant.getName());
-        response.setAddress(savedRestaurant.getAddress());
-        response.setCity(savedRestaurant.getCity());
-        response.setState(savedRestaurant.getState());
-        response.setContactNumber(savedRestaurant.getContactNumber());
-        response.setCuisine(savedRestaurant.getCuisine());
-        response.setImageUrl(savedRestaurant.getImageUrl());
-        response.setOpen(savedRestaurant.isOpen());
-        response.setCreatedAt(savedRestaurant.getCreatedAt());
-        response.setUpdatedAt(savedRestaurant.getUpdatedAt());
-        return response;
+        return  restaurantRepository.save(restaurant);
     }
 
-    public MenuItemResponse createMenuItem(Long restaurantId, MenuItemRequest request) {
+    public MenuItem createMenuItem(Long restaurantId, MenuItemRequest request) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
             .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with ID: " + restaurantId));
 
@@ -68,40 +51,10 @@ public class RestaurantService {
         menuItem.setVegStatus(request.getVegStatus());
         menuItem.setRestaurant(restaurant);
 
-        MenuItem savedMenuItem = menuItemRepository.save(menuItem);
-
-        MenuItemResponse response = new MenuItemResponse();
-        response.setId(savedMenuItem.getId());
-        response.setName(savedMenuItem.getName());
-        response.setPrice(savedMenuItem.getPrice());
-        response.setDescription(savedMenuItem.getDescription());
-        response.setImageUrl(savedMenuItem.getImageUrl());
-        response.setCategory(savedMenuItem.getCategory());
-        response.setAvailable(savedMenuItem.isAvailable());
-        response.setVegStatus(savedMenuItem.getVegStatus());
-        response.setRestaurantId(savedMenuItem.getRestaurant().getId());
-        response.setCreatedAt(savedMenuItem.getCreatedAt());
-        response.setUpdatedAt(savedMenuItem.getUpdatedAt());
-        return response;
+        return menuItemRepository.save(menuItem);
     }
 
-    public List<RestaurantResponse> getAllRestaurants() {
-        return restaurantRepository.findAll().stream()
-            .map(restaurant -> {
-                RestaurantResponse response = new RestaurantResponse();
-                response.setId(restaurant.getId());
-                response.setName(restaurant.getName());
-                response.setAddress(restaurant.getAddress());
-                response.setCity(restaurant.getCity());
-                response.setState(restaurant.getState());
-                response.setContactNumber(restaurant.getContactNumber());
-                response.setCuisine(restaurant.getCuisine());
-                response.setImageUrl(restaurant.getImageUrl());
-                response.setOpen(restaurant.isOpen());
-                response.setCreatedAt(restaurant.getCreatedAt());
-                response.setUpdatedAt(restaurant.getUpdatedAt());
-                return response;
-            })
-            .collect(Collectors.toList());
+    public List<Restaurant> getAllRestaurants() {
+        return restaurantRepository.findAll();
     }
 }

@@ -21,6 +21,11 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(DuplicatePhoneException.class)
+    public ResponseEntity<Map<String, String>> handleDuplicatePhoneException(DuplicatePhoneException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(DuplicateRestaurantNameException.class)
     public ResponseEntity<Map<String, String>> handleDuplicateRestaurantNameException(DuplicateRestaurantNameException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);

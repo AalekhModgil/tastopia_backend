@@ -1,9 +1,9 @@
 package com.tastopia.tastopia.service;
 
 import com.tastopia.tastopia.dto.UserRequest;
-import com.tastopia.tastopia.dto.UserResponse;
 import com.tastopia.tastopia.entity.User;
 import com.tastopia.tastopia.exception.DuplicateEmailException;
+import com.tastopia.tastopia.exception.DuplicatePhoneException;
 import com.tastopia.tastopia.exception.ResourceNotFoundException;
 import com.tastopia.tastopia.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +24,12 @@ public class UserService implements UserDetailsService{
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
-    public UserResponse createUser(UserRequest request) {
+    public User createUser(UserRequest request) {
         userRepository.findByEmail(request.getEmail())
             .ifPresent(user -> { throw new DuplicateEmailException("Email already taken"); });
+
+        userRepository.findByPhone(request.getPhone())
+            .ifPresent(user -> { throw new DuplicatePhoneException("Phone number already taken"); });
 
         User user = new User();
         user.setName(request.getName());
@@ -37,19 +40,7 @@ public class UserService implements UserDetailsService{
         user.setRole(User.Role.USER);
         user.setActive(true);
 
-        User savedUser = userRepository.save(user);
-
-        UserResponse response = new UserResponse();
-        response.setId(savedUser.getId());
-        response.setName(savedUser.getName());
-        response.setEmail(savedUser.getEmail());
-        response.setPhone(savedUser.getPhone());
-        response.setProfileImageUrl(savedUser.getProfileImageUrl());
-        response.setRole(savedUser.getRole());
-        response.setIsActive(savedUser.isActive());
-        response.setCreatedAt(savedUser.getCreatedAt());
-        response.setUpdatedAt(savedUser.getUpdatedAt());
-        return response;
+        return userRepository.save(user);
     }
 
     public User save(User user) {

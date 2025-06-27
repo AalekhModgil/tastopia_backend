@@ -5,6 +5,7 @@ import com.tastopia.tastopia.dto.UserRequest;
 import com.tastopia.tastopia.dto.UserResponse;
 import com.tastopia.tastopia.entity.BlacklistedToken;
 import com.tastopia.tastopia.entity.User;
+import com.tastopia.tastopia.mapper.UserMapper;
 import com.tastopia.tastopia.repository.BlacklistedTokenRepository;
 import com.tastopia.tastopia.service.UserService;
 import io.jsonwebtoken.Claims;
@@ -35,14 +36,16 @@ public class UserController {
     private final AuthenticationManager authenticationManager;
     private final BlacklistedTokenRepository blacklistedTokenRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+    private final UserMapper userMapper;
     private static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
     private static final SecretKey SECRET_KEY = Keys.secretKeyFor(io.jsonwebtoken.SignatureAlgorithm.HS256);
 
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> signup(@Valid @RequestBody UserRequest request) {
-        UserResponse userResponse = userService.createUser(request);
-        String token = generateJwtToken(userResponse.getEmail());
+        User user = userService.createUser(request);
+        String token = generateJwtToken(user.getEmail());
+        UserResponse userResponse = userMapper.toUserResponse(user);
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
         response.put("user", userResponse);
@@ -62,16 +65,7 @@ public class UserController {
         }
 
         String token = generateJwtToken(user.getEmail());
-        UserResponse userResponse = new UserResponse();
-        userResponse.setId(user.getId());
-        userResponse.setName(user.getName());
-        userResponse.setEmail(user.getEmail());
-        userResponse.setPhone(user.getPhone());
-        userResponse.setProfileImageUrl(user.getProfileImageUrl());
-        userResponse.setRole(user.getRole());
-        userResponse.setIsActive(user.isActive());
-        userResponse.setCreatedAt(user.getCreatedAt());
-        userResponse.setUpdatedAt(user.getUpdatedAt());
+        UserResponse userResponse = userMapper.toUserResponse(user);
 
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
