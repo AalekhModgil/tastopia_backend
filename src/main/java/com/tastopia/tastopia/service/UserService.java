@@ -2,13 +2,14 @@ package com.tastopia.tastopia.service;
 
 import com.tastopia.tastopia.dto.UserRequest;
 import com.tastopia.tastopia.entity.User;
-import com.tastopia.tastopia.exception.DuplicateEmailException;
-import com.tastopia.tastopia.exception.DuplicatePhoneException;
+import com.tastopia.tastopia.exception.DuplicateUserDetailsException;
 import com.tastopia.tastopia.exception.ResourceNotFoundException;
 import com.tastopia.tastopia.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,17 +20,23 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements UserDetailsService{
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     public User createUser(UserRequest request) {
+        Map<String, String> errors = new HashMap<>();
+
         userRepository.findByEmail(request.getEmail())
-            .ifPresent(user -> { throw new DuplicateEmailException("Email already taken"); });
+                .ifPresent(user -> errors.put("email", "Email already taken"));
 
         userRepository.findByPhone(request.getPhone())
-            .ifPresent(user -> { throw new DuplicatePhoneException("Phone number already taken"); });
+                .ifPresent(user -> errors.put("phone", "Phone number already taken"));
+
+        if (!errors.isEmpty()) {
+            throw new DuplicateUserDetailsException("Validation errors", errors);
+        }
 
         User user = new User();
         user.setName(request.getName());
@@ -49,16 +56,15 @@ public class UserService implements UserDetailsService{
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
     }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
         return new org.springframework.security.core.userdetails.User(
-            user.getEmail(), user.getPassword(),
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
-        );
+                user.getEmail(), user.getPassword(),
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
     }
 }

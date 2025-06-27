@@ -16,14 +16,13 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(DuplicateEmailException.class)
-    public ResponseEntity<Map<String, String>> handleDuplicateEmailException(DuplicateEmailException ex) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(DuplicatePhoneException.class)
-    public ResponseEntity<Map<String, String>> handleDuplicatePhoneException(DuplicatePhoneException ex) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(DuplicateUserDetailsException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateUserDetailsException(DuplicateUserDetailsException ex) {
+        Map<String, Object> errors = new HashMap<>();
+        errors.put("status", HttpStatus.BAD_REQUEST.value());
+        errors.put("error", "Validation errors");
+        errors.put("details", ex.getErrors());
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(DuplicateRestaurantNameException.class)
