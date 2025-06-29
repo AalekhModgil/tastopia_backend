@@ -2,6 +2,10 @@ package com.tastopia.tastopia.mapper;
 
 import com.tastopia.tastopia.dto.MenuItemResponse;
 import com.tastopia.tastopia.entity.MenuItem;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,5 +25,11 @@ public class MenuItemMapper {
         response.setCreatedAt(menuItem.getCreatedAt());
         response.setUpdatedAt(menuItem.getUpdatedAt());
         return response;
+    }
+
+    public List<MenuItemResponse> toMenuItemResponseList(List<MenuItem> menuItems) {
+        return menuItems.stream()
+            .map(this::toMenuItemResponse)
+            .collect(Collectors.toList());
     }
 }
