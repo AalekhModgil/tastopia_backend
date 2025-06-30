@@ -2,6 +2,7 @@ package com.tastopia.tastopia.controller;
 
 import com.tastopia.tastopia.config.JwtConfig;
 import com.tastopia.tastopia.dto.LoginRequest;
+import com.tastopia.tastopia.dto.UpdateUserRequest;
 import com.tastopia.tastopia.dto.UserRequest;
 import com.tastopia.tastopia.dto.UserResponse;
 import com.tastopia.tastopia.entity.BlacklistedToken;
@@ -111,14 +112,14 @@ public class UserController {
     @GetMapping("/profile")
     public ResponseEntity<UserResponse> getProfile() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName(); // Get email from JWT
+        String email = auth.getName();
         User user = userService.findByEmail(email);
         UserResponse response = userMapper.toUserResponse(user);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/profile")
-    public ResponseEntity<UserResponse> updateProfile(@Valid @RequestBody UserRequest request) {
+    public ResponseEntity<UserResponse> updateProfile(@Valid @RequestBody UpdateUserRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
         User user = userService.findByEmail(email);
@@ -126,8 +127,7 @@ public class UserController {
         user.setName(request.getName());
         user.setPhone(request.getPhone());
         user.setProfileImageUrl(request.getProfileImageUrl());
-        // Note: Email and password cannot be updated here for security; use separate
-        // endpoints if needed
+
         user = userService.save(user);
         UserResponse response = userMapper.toUserResponse(user);
         return ResponseEntity.ok(response);
@@ -139,7 +139,7 @@ public class UserController {
         String email = auth.getName();
         User user = userService.findByEmail(email);
 
-        user.setActive(false); // Soft delete by setting isActive to false
+        user.setActive(false);
         userService.save(user);
         return ResponseEntity.ok(Map.of("message", "Profile deactivated successfully"));
     }
