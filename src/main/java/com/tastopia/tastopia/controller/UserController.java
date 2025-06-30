@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -74,7 +75,8 @@ public class UserController {
     }
 
     @PostMapping("/signout")
-    public ResponseEntity<Map<String, String>> signout(@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+    public ResponseEntity<Map<String, String>> signout(
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No token provided"));
         }
@@ -92,7 +94,8 @@ public class UserController {
                     .parseClaimsJws(token)
                     .getBody();
 
-            LocalDateTime expiryDate = claims.getExpiration().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+            LocalDateTime expiryDate = claims.getExpiration().toInstant().atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDateTime();
 
             BlacklistedToken blacklistedToken = new BlacklistedToken();
             blacklistedToken.setToken(token);
@@ -103,6 +106,42 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid token"));
         }
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<UserResponse> getProfile() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName(); // Get email from JWT
+        User user = userService.findByEmail(email);
+        UserResponse response = userMapper.toUserResponse(user);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UserResponse> updateProfile(@Valid @RequestBody UserRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        User user = userService.findByEmail(email);
+
+        user.setName(request.getName());
+        user.setPhone(request.getPhone());
+        user.setProfileImageUrl(request.getProfileImageUrl());
+        // Note: Email and password cannot be updated here for security; use separate
+        // endpoints if needed
+        user = userService.save(user);
+        UserResponse response = userMapper.toUserResponse(user);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/profile")
+    public ResponseEntity<Map<String, String>> deleteProfile() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        User user = userService.findByEmail(email);
+
+        user.setActive(false); // Soft delete by setting isActive to false
+        userService.save(user);
+        return ResponseEntity.ok(Map.of("message", "Profile deactivated successfully"));
     }
 
     private String generateJwtToken(String subject) {

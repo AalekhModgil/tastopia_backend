@@ -31,7 +31,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**", "/api/restaurants",
                                 "/api/restaurants/*/menu-items", "/api/v1/search", "/api/v1/restaurants/filter")
                         .permitAll()
-                        .requestMatchers("/api/users/signout").authenticated()
+                        .requestMatchers("/api/users/signout","api/user/profile").authenticated()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .userDetailsService(userService)
