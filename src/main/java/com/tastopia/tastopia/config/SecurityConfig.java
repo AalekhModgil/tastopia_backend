@@ -25,13 +25,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/users/signup", "/api/users/signin", "/api/users/signout", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**", "/api/restaurants", "/api/restaurants/*/menu-items", "/api/v1/search").permitAll() // Fixed pattern
-                .anyRequest().authenticated())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .userDetailsService(userService)
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/users/signup", "/api/users/signin", "/api/users/signout",
+                                "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**", "/api/restaurants",
+                                "/api/restaurants/*/menu-items", "/api/v1/search","/api/v1/restaurants/filter")
+                        .permitAll() // Fixed pattern
+                        .anyRequest().authenticated())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .userDetailsService(userService)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

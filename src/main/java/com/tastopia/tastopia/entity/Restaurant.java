@@ -52,6 +52,9 @@ public class Restaurant {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "avg_delivery_time_in_minutes")
+    private Integer avgDeliveryTimeInMinutes; // For Fast Delivery filter
+
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MenuItem> menuItems;
 

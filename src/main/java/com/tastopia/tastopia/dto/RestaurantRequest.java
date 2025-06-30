@@ -22,4 +22,6 @@ public class RestaurantRequest {
 
     private String cuisine;
     private String imageUrl;
+
+    private Integer avgDeliveryTimeInMinutes; // Added for Fast Delivery filter
 }

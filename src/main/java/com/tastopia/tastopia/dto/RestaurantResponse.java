@@ -18,4 +18,7 @@ public class RestaurantResponse {
     private boolean isOpen;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private Integer avgDeliveryTimeInMinutes; // Added for Fast Delivery filter
+    private Double averageRating; // Added for Top Rated filter
 }

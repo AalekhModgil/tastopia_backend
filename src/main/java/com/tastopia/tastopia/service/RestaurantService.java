@@ -33,6 +33,7 @@ public class RestaurantService {
         restaurant.setCuisine(request.getCuisine());
         restaurant.setImageUrl(request.getImageUrl());
         restaurant.setOpen(true);
+        restaurant.setAvgDeliveryTimeInMinutes(request.getAvgDeliveryTimeInMinutes());
 
         return  restaurantRepository.save(restaurant);
     }

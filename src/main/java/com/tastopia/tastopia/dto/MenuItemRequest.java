@@ -28,4 +28,7 @@ public class MenuItemRequest {
 
     @NotNull(message = "Veg status is required")
     private MenuItem.VegStatus vegStatus;
+
+    private boolean isAvailable; // Added for completeness
+    private Long restaurantId; // Added for association
 }

@@ -23,6 +23,19 @@ public class RestaurantMapper {
         response.setOpen(restaurant.isOpen());
         response.setCreatedAt(restaurant.getCreatedAt());
         response.setUpdatedAt(restaurant.getUpdatedAt());
+        response.setAvgDeliveryTimeInMinutes(restaurant.getAvgDeliveryTimeInMinutes());
+
+        // Compute average rating (simplified; assumes ratings are accessible via menu items)
+        if (restaurant.getMenuItems() != null && !restaurant.getMenuItems().isEmpty()) {
+            double avgRating = restaurant.getMenuItems().stream()
+                .flatMap(menuItem -> menuItem.getRatings().stream())
+                .mapToInt(rating -> rating.getRating())
+                .average()
+                .orElse(0.0);
+            response.setAverageRating(avgRating);
+        } else {
+            response.setAverageRating(0.0);
+        }
         return response;
     }
 
