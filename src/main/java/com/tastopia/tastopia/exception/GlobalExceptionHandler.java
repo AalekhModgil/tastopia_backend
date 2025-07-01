@@ -25,6 +25,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(DuplicateFavoriteException.class)
+    public ResponseEntity<Map<String, String>> handleDuplicateFavorite(DuplicateFavoriteException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("status", String.valueOf(HttpStatus.CONFLICT.value()));
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(DuplicateRestaurantNameException.class)
     public ResponseEntity<Map<String, String>> handleDuplicateRestaurantNameException(DuplicateRestaurantNameException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);

@@ -1,11 +1,14 @@
 package com.tastopia.tastopia.controller;
 
 import com.tastopia.tastopia.config.JwtConfig;
+import com.tastopia.tastopia.dto.FavoriteCheckResponse;
+import com.tastopia.tastopia.dto.FavoriteResponse;
 import com.tastopia.tastopia.dto.LoginRequest;
 import com.tastopia.tastopia.dto.UpdateUserRequest;
 import com.tastopia.tastopia.dto.UserRequest;
 import com.tastopia.tastopia.dto.UserResponse;
 import com.tastopia.tastopia.entity.BlacklistedToken;
+import com.tastopia.tastopia.entity.Favorites;
 import com.tastopia.tastopia.entity.User;
 import com.tastopia.tastopia.mapper.UserMapper;
 import com.tastopia.tastopia.repository.BlacklistedTokenRepository;
@@ -26,7 +29,9 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
@@ -59,6 +64,7 @@ public class UserController {
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
 
+        @SuppressWarnings("unused")
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password));
         User user = userService.findByEmail(email);
@@ -142,6 +148,53 @@ public class UserController {
         user.setActive(false);
         userService.save(user);
         return ResponseEntity.ok(Map.of("message", "Profile deactivated successfully"));
+    }
+
+    // Favorites Endpoints
+    @GetMapping("/favorites/check/{restaurantId}")
+    public ResponseEntity<FavoriteCheckResponse> checkFavorite(@PathVariable Long restaurantId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        User user = userService.findByEmail(email);
+        FavoriteCheckResponse response = new FavoriteCheckResponse();
+        response.setFavorited(userService.isFavorite(user.getId(), restaurantId));
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/favorites/{restaurantId}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<Map<String, String>> addFavorite(@PathVariable Long restaurantId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        User user = userService.findByEmail(email);
+        userService.addFavorite(user.getId(), restaurantId);
+        return ResponseEntity.ok(Map.of("message", "Restaurant added to favorites."));
+    }
+
+    @DeleteMapping("/favorites/{restaurantId}")
+    public ResponseEntity<Map<String, String>> removeFavorite(@PathVariable Long restaurantId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        User user = userService.findByEmail(email);
+        userService.removeFavorite(user.getId(), restaurantId);
+        return ResponseEntity.ok(Map.of("message", "Restaurant removed from favorites."));
+    }
+
+    @GetMapping("/favorites")
+    public ResponseEntity<List<FavoriteResponse>> getFavorites() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        User user = userService.findByEmail(email);
+        List<Favorites> favorites = userService.getUserFavorites(user.getId());
+        List<FavoriteResponse> response = favorites.stream()
+                .map(fav -> {
+                    FavoriteResponse favResp = new FavoriteResponse();
+                    favResp.setRestaurantId(fav.getRestaurant().getId());
+                    favResp.setRestaurantName(fav.getRestaurant().getName());
+                    favResp.setImageUrl(fav.getRestaurant().getImageUrl());
+                    return favResp;
+                }).collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 
     private String generateJwtToken(String subject) {

@@ -1,14 +1,22 @@
 package com.tastopia.tastopia.service;
 
 import com.tastopia.tastopia.dto.UserRequest;
+import com.tastopia.tastopia.entity.Favorites;
+import com.tastopia.tastopia.entity.Restaurant;
 import com.tastopia.tastopia.entity.User;
+import com.tastopia.tastopia.exception.DuplicateFavoriteException;
 import com.tastopia.tastopia.exception.DuplicateUserDetailsException;
 import com.tastopia.tastopia.exception.ResourceNotFoundException;
+import com.tastopia.tastopia.repository.FavoritesRepository;
+import com.tastopia.tastopia.repository.RestaurantRepository;
 import com.tastopia.tastopia.repository.UserRepository;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,6 +31,8 @@ import org.springframework.stereotype.Service;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final FavoritesRepository favoritesRepository;
+    private final RestaurantRepository restaurantRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     public User createUser(UserRequest request) {
@@ -57,6 +67,45 @@ public class UserService implements UserDetailsService {
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+    }
+
+    public boolean isFavorite(Long userId, Long restaurantId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User not found with ID: " + userId);
+        }
+        if (!restaurantRepository.existsById(restaurantId)) {
+            throw new ResourceNotFoundException("Restaurant not found with ID: " + restaurantId);
+        }
+        return favoritesRepository.existsByUserIdAndRestaurantId(userId, restaurantId);
+    }
+
+    public Favorites addFavorite(Long userId, Long restaurantId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+        Restaurant restaurant = restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with ID: " + restaurantId));
+        if (favoritesRepository.existsByUserIdAndRestaurantId(userId, restaurantId)) {
+            throw new DuplicateFavoriteException("Restaurant already in favorites");
+        }
+        Favorites favorite = new Favorites();
+        favorite.setUser(user);
+        favorite.setRestaurant(restaurant);
+        return favoritesRepository.save(favorite);
+    }
+
+    @Transactional
+    public void removeFavorite(Long userId, Long restaurantId) {
+        if (!favoritesRepository.existsByUserIdAndRestaurantId(userId, restaurantId)) {
+            throw new ResourceNotFoundException("Favorite not found");
+        }
+        favoritesRepository.deleteByUserIdAndRestaurantId(userId, restaurantId);
+    }
+
+    public List<Favorites> getUserFavorites(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User not found with ID: " + userId);
+        }
+        return favoritesRepository.findByUserId(userId);
     }
 
     @Override
