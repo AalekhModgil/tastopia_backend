@@ -25,13 +25,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> cors.configure(http))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/signup", "/api/users/signin",
-                                "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**", "/api/restaurants",
-                                "/api/restaurants/*/menu-items", "/api/v1/search", "/api/v1/restaurants/filter")
-                        .permitAll()
-                        .requestMatchers("/api/users/signout","api/user/profile").authenticated()
+                        .requestMatchers(
+                                "/api/users/signup", "/api/users/signin",
+                                "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**",
+                                "/api/restaurants", "/api/restaurants/*/menu-items",
+                                "/api/v1/search", "/api/v1/restaurants/filter"
+                        ).permitAll()
+                        .requestMatchers("/api/users/signout", "api/user/profile").authenticated()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .userDetailsService(userService)

@@ -26,13 +26,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtConfig jwtConfig;
     private final BlacklistedTokenRepository blacklistedTokenRepository;
 
+    // ✅ Skip the filter for public endpoints
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        return path.startsWith("/api/users/signin") ||
+               path.startsWith("/api/users/signup") ||
+               path.startsWith("/api/restaurants") ||
+               path.startsWith("/api/v1/search") ||
+               path.startsWith("/api/v1/restaurants/filter") ||
+               path.startsWith("/swagger-ui") ||
+               path.startsWith("/v3/api-docs") ||
+               path.startsWith("/api-docs");
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
         String authorizationHeader = request.getHeader("Authorization");
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ") && !authorizationHeader.equals("Bearer null")) {
             String token = authorizationHeader.substring(7).trim();
 
             // Check if token is blacklisted
